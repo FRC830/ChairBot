@@ -8,6 +8,7 @@
 #include <frc/motorcontrol/PWMSparkMax.h>
 #include <ctre/phoenix/motorcontrol/can/WPI_VictorSPX.h>
 #include <frc/SpeedControllerGroup.h>
+#include <frc/XboxController.h>
 
 #include <ctre/phoenix/motorcontrol/can/WPI_TalonSRX.h>
 
@@ -20,11 +21,15 @@ class Robot : public frc::TimedRobot {
   ctre::phoenix::motorcontrol::can::WPI_VictorSPX m_leftMotor2{5};
   ctre::phoenix::motorcontrol::can::WPI_TalonSRX m_rightMotor1{6};
   ctre::phoenix::motorcontrol::can::WPI_TalonSRX m_rightMotor2{3};
-  
+
+  frc::XboxController pilot {0};
 
 
-  // frc::SpeedControllerGroup leftGroup{m_leftMotor, }
-  frc::DifferentialDrive m_robotDrive{m_leftMotor, m_rightMotor};
+
+
+  frc::SpeedControllerGroup leftGroup{m_leftMotor1, m_leftMotor2};
+  frc::SpeedControllerGroup rightGroup{m_rightMotor1, m_rightMotor2};
+  frc::DifferentialDrive m_robotDrive{leftGroup, rightGroup};
   frc::Joystick m_stick{0};
 
  public:
@@ -32,13 +37,21 @@ class Robot : public frc::TimedRobot {
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
-    m_rightMotor.SetInverted(false);
-    m_leftMotor.SetInverted(true);
+  
+    m_leftMotor1.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+    m_leftMotor2.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+    m_rightMotor1.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+    m_rightMotor2.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Brake);
+
+    m_rightMotor1.SetInverted(false);
+    m_rightMotor2.SetInverted(false);
+    m_leftMotor1.SetInverted(true);
+    m_leftMotor2.SetInverted(true);
   }
 
   void TeleopPeriodic() override {
     // Drive with arcade style
-    m_robotDrive.ArcadeDrive(-m_stick.GetY(), m_stick.GetX());
+    m_robotDrive.ArcadeDrive(pilot.GetRightY(), -pilot.GetLeftX() * 0.8);
   }
 }; 
 
